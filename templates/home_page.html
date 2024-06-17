@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<main>
+    <div class="container">
+        {% for task in tasks %}
+        <div class="tasks {% if task.status %}active{% endif %}" id="task-{{task.id}}">
+            <div class="task-container">
+                <h5>{{task.title}}</h5>
+                <p>{{task.description}}</p>
+            </div>
+            <div class="btn-container">
+                <div class="task-btn">
+                   <button class="del-btn" id="{{task.id}}" type="button">Delete</button>
+                   <button class="edit-btn" id="{{task.id}}" type="button">Edit</button>
+                </div>
+               
+            </div>
+            <div class="edit-form d-none" id="edit-form-{{task.id}}">
+                <input type="text" class="edit-title" value="{{task.title}}">
+                <textarea class="edit-description" rows="3">{{task.description}}</textarea>
+                <button class="save-edit-btn" id="{{task.id}}" type="button">Save</button>
+                <button class="cancel-edit-btn" id="{{task.id}}" type="button">Cancel</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+
+<aside class="menu">
+    <h3>Create new task</h3>
+    <div class="new-task-form">
+        <input type="text" id="form-Title" placeholder="Title">
+        <textarea id="form-Description" placeholder="Description" rows="1"></textarea>
+        <button type="button" id="post-btn">Create task</button>
+    </div>
+</aside>
+
+<script>
+    const listTaskGet = 'http://127.0.0.1:8000/api/v1/tasks/list/';
+    const post_api_create = 'http://127.0.0.1:8000/api/v1/tasks/create/';
+    const update_api = 'http://127.0.0.1:8000/api/v1/tasks/update/';
+    const delete_api = 'http://127.0.0.1:8000/api/v1/tasks/delete/';
+
+    function reload_page(time) {
+        setTimeout(() => {
+            document.location.reload();
+        }, time);
+    }
+
+    
+
+
+
+    // Create button functional
+    document.getElementById("post-btn").addEventListener('click', () => {
+        let formTitle = document.getElementById("form-Title").value;
+        let formDescription = document.getElementById("form-Description").value;
+        let task = {
+            'title': formTitle,
+            'description': formDescription
+        };
+
+        fetch(post_api_create, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(task)
+        })
+        .then(response => {
+            if (response.ok) {
+                document.getElementById("form-Title").value = "";
+                document.getElementById("form-Description").value = "";
+                reload_page(50);
+            } else {
+                console.error('Error creating task');
+            }
+        });
+    });
+
+    // Delete button functional
+    document.querySelectorAll('.del-btn').forEach((element) => {
+        element.addEventListener('click', function () {
+            const url = `${delete_api}${this.id}`;
+            fetch(url, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    reload_page(50);
+                } else {
+                    console.error('Error deleting task');
+                }
+            });
+        });
+    });
+
+    // Edit button functional
+    document.querySelectorAll('.edit-btn').forEach((element) => {
+        element.addEventListener('click', function () {
+            const taskId = this.id;
+            document.getElementById(`edit-form-${taskId}`).classList.remove('d-none');
+        });
+    });
+
+    // Save edited task
+    document.querySelectorAll('.save-edit-btn').forEach((element) => {
+        element.addEventListener('click', function () {
+            const taskId = this.id;
+            const title = document.querySelector(`#edit-form-${taskId} .edit-title`).value;
+            const description = document.querySelector(`#edit-form-${taskId} .edit-description`).value;
+
+            let task = {
+                'title': title,
+                'description': description,
+                'status': false  
+            };
+
+            fetch(`${update_api}?task_id=${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(task)
+            })
+            .then(response => {
+                if (response.ok) {
+                    reload_page(50);
+                } else {
+                    console.error('Error updating task');
+                }
+            });
+        });
+    });
+
+    // Cancel edit
+    document.querySelectorAll('.cancel-edit-btn').forEach((element) => {
+        element.addEventListener('click', function () {
+            const taskId = this.id;
+            document.getElementById(`edit-form-${taskId}`).classList.add('d-none');
+        });
+    });
+</script>
+{% endblock %}
+
+

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block metadata %}
+<link rel="stylesheet" href="{{ url_for('static', path='/login.css') }}">
+{% endblock %} 
+
+{% block content %}
+
+
+<div class="form-container sign-up"> 
+    <form action="">
+        <h1>Login</h1>
+        
+        <input type="email" placeholder="E-mail">
+        <input type="password" placeholder="Password">
+        <button type="submit">Login</button>
+    </form>
+</div>
+
+
+<script src="{{ url_for('static', path='') }}"></script>
+{% endblock %}
